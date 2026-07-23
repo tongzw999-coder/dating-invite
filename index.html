@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特别邀请</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 30px 20px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Floating hearts background */
+        .hearts-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            animation: floatHeart 6s ease-in-out infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes floatHeart {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Page 1 - Main invitation */
+        .title {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #ffeef8;
+            margin-bottom: 15px;
+        }
+
+        .name-input {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            border: 3px solid #ff6b9d;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.95);
+            color: #d63384;
+            text-align: center;
+            margin-bottom: 40px;
+            width: 250px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .name-input:focus {
+            border-color: #ff4081;
+            box-shadow: 0 0 20px rgba(255,64,129,0.4);
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 18px 50px;
+            font-size: 1.3rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-yes {
+            background: linear-gradient(45deg, #ff6b9d, #ff4081);
+            color: white;
+            box-shadow: 0 8px 25px rgba(255,64,129,0.4);
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(255,64,129,0.5);
+        }
+
+        .btn-no {
+            background: linear-gradient(45deg, #a8a8a8, #888888);
+            color: white;
+            position: absolute;
+            transition: all 0.15s ease;
+            z-index: 100;
+        }
+
+        .btn-no.escaping {
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        .cute-emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .hint {
+            color: #ffeef8;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+
+        /* Page 2 & 3 - Selection pages */
+        .question {
+            font-size: 1.8rem;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .option-card {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .option-card img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 10px;
+        }
+
+        .option-card span {
+            color: #d63384;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Page 4 - Result */
+        .result-card {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+        }
+
+        .result-title {
+            font-size: 1.8rem;
+            color: #d63384;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-icon {
+            font-size: 2rem;
+        }
+
+        .result-text {
+            text-align: left;
+        }
+
+        .result-label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .result-value {
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .love-message {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b9d22, #ff408122);
+            border-radius: 15px;
+            color: #d63384;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .restart-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Sparkle effect */
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            animation: sparkle 0.6s ease-out forwards;
+        }
+
+        @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 1; }
+            100% { transform: scale(1) rotate(180deg); opacity: 0; }
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 400px) {
+            .title { font-size: 2rem; }
+            .options-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .option-card img { height: 80px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hearts-container" id="hearts"></div>
+
+    <div class="container">
+        <!-- Page 1: Invitation -->
+        <div class="page active" id="page1">
+            <div class="cute-emoji">💝</div>
+            <h1 class="title">特别邀请</h1>
+            <p class="subtitle">嘿，要不要和我约个会呀？</p>
+            <input type="text" class="name-input" id="girlName" placeholder="你的名字" value="亲爱的">
+            <div class="btn-container" style="position: relative; height: 80px;">
+                <button class="btn btn-yes" onclick="chooseYes()">要！💕</button>
+                <button class="btn btn-no" id="btnNo" onclick="tryClickNo()">不要 😢</button>
+            </div>
+            <p class="hint" id="hint">你是不是想点"不要"？试试看啊~ 😏</p>
+        </div>
+
+        <!-- Page 2: Location -->
+        <div class="page" id="page2">
+            <div class="cute-emoji">🌸</div>
+            <h2 class="question">想去哪里约会呢？</h2>
+            <div class="options-grid">
+                <div class="option-card" onclick="selectLocation('游乐园 🎢')">
+                    <img src="https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=300&h=200&fit=crop" alt="游乐园">
+                    <span>游乐园 🎢</span>
+                </div>
+                <div class="option-card" onclick="selectLocation('电影院 🎬')">
+                    <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=200&fit=crop" alt="电影院">
+                    <span>电影院 🎬</span>
+                </div>
+                <div class="option-card" onclick="selectLocation('海边 🌊')">
+                    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&h=200&fit=crop" alt="海边">
+                    <span>海边 🌊</span>
+                </div>
+                <div class="option-card" onclick="selectLocation('咖啡厅 ☕')">
+                    <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=300&h=200&fit=crop" alt="咖啡厅">
+                    <span>咖啡厅 ☕</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 3: Food -->
+        <div class="page" id="page3">
+            <div class="cute-emoji">🍰</div>
+            <h2 class="question">想吃什么呢？</h2>
+            <div class="options-grid">
+                <div class="option-card" onclick="selectFood('火锅 🍲')">
+                    <img src="https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=300&h=200&fit=crop" alt="火锅">
+                    <span>火锅 🍲</span>
+                </div>
+                <div class="option-card" onclick="selectFood('寿司 🍣')">
+                    <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&h=200&fit=crop" alt="寿司">
+                    <span>寿司 🍣</span>
+                </div>
+                <div class="option-card" onclick="selectFood('烧烤 🍖')">
+                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300&h=200&fit=crop" alt="烧烤">
+                    <span>烧烤 🍖</span>
+                </div>
+                <div class="option-card" onclick="selectFood('甜品 🧁')">
+                    <img src="https://images.unsplash.com/photo-1551024601-bec78aea704b?w=300&h=200&fit=crop" alt="甜品">
+                    <span>甜品 🧁</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 4: Result -->
+        <div class="page" id="page4">
+            <div class="cute-emoji">🥰</div>
+            <h2 class="title">约会计划来啦！</h2>
+            <div class="result-card">
+                <div class="result-item">
+                    <span class="result-icon">📅</span>
+                    <div class="result-text">
+                        <div class="result-label">时间</div>
+                        <div class="result-value" id="resultTime">这周末 · 下午两点</div>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <span class="result-icon">📍</span>
+                    <div class="result-text">
+                        <div class="result-label">地点</div>
+                        <div class="result-value" id="resultLocation">待定</div>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <span class="result-icon">🍽️</span>
+                    <div class="result-text">
+                        <div class="result-label">美食</div>
+                        <div class="result-value" id="resultFood">待定</div>
+                    </div>
+                </div>
+                <div class="love-message" id="loveMessage">
+                    期待和你一起度过美好的时光！<br>有你在，哪里都是天堂 ❤️
+                </div>
+            </div>
+            <button class="restart-btn" onclick="restart()">重新开始 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let selections = {
+            name: '',
+            location: '',
+            food: ''
+        };
+
+        // Create floating hearts
+        function createHearts() {
+            const container = document.getElementById('hearts');
+            const hearts = ['💕', '💗', '💖', '💝', '✨', '🌟', '💫'];
+
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDuration = (4 + Math.random() * 4) + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        // Initialize
+        createHearts();
+
+        // Button states
+        let hintCount = 0;
+        const hints = [
+            '你是不是想点"不要"？试试看啊~ 😏',
+            '哈哈点不到吧！认输吧~ 😂',
+            '放弃吧老弟 😜',
+            '只能点"要"哦~ 💪',
+            '乖，点"要"吧！🙏',
+            '我真的跑得很快的！🏃‍♂️'
+        ];
+
+        // Escape button logic
+        function tryClickNo() {
+            const btn = document.getElementById('btnNo');
+            btn.classList.add('escaping');
+            setTimeout(() => btn.classList.remove('escaping'), 300);
+
+            hintCount = (hintCount + 1) % hints.length;
+            document.getElementById('hint').textContent = hints[hintCount];
+        }
+
+        // Move button on mouse move (but only sometimes to make it playful)
+        let lastMoveTime = 0;
+        document.addEventListener('mousemove', function(e) {
+            const btn = document.getElementById('btnNo');
+            if (!btn) return;
+
+            const now = Date.now();
+            if (now - lastMoveTime < 150) return; // Throttle
+            lastMoveTime = now;
+
+            const rect = btn.getBoundingClientRect();
+            const btnCenterX = rect.left + rect.width / 2;
+            const btnCenterY = rect.top + rect.height / 2;
+
+            const distance = Math.sqrt(
+                Math.pow(e.clientX - btnCenterX, 2) +
+                Math.pow(e.clientY - btnCenterY, 2)
+            );
+
+            // If mouse is within 100px, run away!
+            if (distance < 120) {
+                const container = document.querySelector('.btn-container');
+                const containerRect = container.getBoundingClientRect();
+
+                // Random new position within container
+                const maxX = containerRect.width - btn.offsetWidth;
+                const maxY = containerRect.height - btn.offsetHeight;
+
+                const newX = Math.random() * maxX;
+                const newY = Math.random() * maxY;
+
+                btn.style.left = newX + 'px';
+                btn.style.top = newY + 'px';
+            }
+        });
+
+        // Touch support for mobile
+        document.addEventListener('touchstart', function(e) {
+            const btn = document.getElementById('btnNo');
+            if (!btn || !btn.style.left) return;
+
+            const rect = btn.getBoundingClientRect();
+            const touch = e.touches[0];
+
+            const distance = Math.sqrt(
+                Math.pow(touch.clientX - (rect.left + rect.width/2), 2) +
+                Math.pow(touch.clientY - (rect.top + rect.height/2), 2)
+            );
+
+            if (distance < 150) {
+                const container = document.querySelector('.btn-container');
+                const containerRect = container.getBoundingClientRect();
+                const maxX = containerRect.width - btn.offsetWidth;
+                const maxY = containerRect.height - btn.offsetHeight;
+
+                btn.style.left = Math.random() * maxX + 'px';
+                btn.style.top = Math.random() * maxY + 'px';
+            }
+        }, { passive: true });
+
+        function chooseYes() {
+            selections.name = document.getElementById('girlName').value || '亲爱的';
+            document.getElementById('page1').classList.remove('active');
+            document.getElementById('page2').classList.add('active');
+            createSparkles();
+        }
+
+        function selectLocation(location) {
+            selections.location = location;
+            document.getElementById('page2').classList.remove('active');
+            document.getElementById('page3').classList.add('active');
+            createSparkles();
+        }
+
+        function selectFood(food) {
+            selections.food = food;
+            showResult();
+        }
+
+        function showResult() {
+            document.getElementById('resultLocation').textContent = selections.location;
+            document.getElementById('resultFood').textContent = selections.food;
+            document.getElementById('loveMessage').innerHTML = `
+                ${selections.name}，和你在一起的每分每秒都很幸福！<br>
+                期待我们的约会 ❤️
+            `;
+
+            document.getElementById('page3').classList.remove('active');
+            document.getElementById('page4').classList.add('active');
+            createSparkles();
+        }
+
+        function restart() {
+            selections = { name: '', location: '', food: '' };
+            document.getElementById('girlName').value = '亲爱的';
+            document.getElementById('page4').classList.remove('active');
+            document.getElementById('page1').classList.add('active');
+
+            // Reset no button position
+            const btn = document.getElementById('btnNo');
+            btn.style.left = '';
+            btn.style.top = '';
+            hintCount = 0;
+            document.getElementById('hint').textContent = hints[0];
+        }
+
+        // Sparkle effect
+        function createSparkles() {
+            const emojis = ['✨', '🌟', '💫', '⭐', '💖'];
+            for (let i = 0; i < 8; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                sparkle.style.left = Math.random() * window.innerWidth + 'px';
+                sparkle.style.top = Math.random() * window.innerHeight + 'px';
+                sparkle.style.fontSize = (15 + Math.random() * 20) + 'px';
+                document.body.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 600);
+            }
+        }
+    </script>
+</body>
+</html>
