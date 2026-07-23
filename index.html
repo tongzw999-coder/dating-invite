@@ -35,6 +35,8 @@
             padding: 30px 20px;
             text-align: center;
             animation: fadeIn 0.5s ease;
+            position: relative;
+            z-index: 10;
         }
 
         .page.active {
@@ -105,6 +107,18 @@
             box-shadow: 0 0 20px rgba(255,64,129,0.4);
         }
 
+        .fixed-name {
+            font-size: 1.8rem;
+            padding: 15px 40px;
+            background: rgba(255,255,255,0.95);
+            color: #d63384;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            font-weight: bold;
+        }
+
         .btn-container {
             display: flex;
             gap: 30px;
@@ -112,7 +126,7 @@
             justify-content: center;
             position: relative;
             height: 150px;
-            width: 280px;
+            width: 320px;
         }
 
         .btn {
@@ -144,8 +158,6 @@
             position: absolute;
             transition: all 0.08s ease;
             z-index: 100;
-            font-size: 1.1rem;
-            padding: 12px 35px;
         }
 
         .btn-no.escaping {
@@ -168,6 +180,24 @@
             font-size: 0.9rem;
             margin-top: 20px;
             opacity: 0.8;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.5);
         }
 
         /* Page 2 & 3 - Selection pages */
@@ -433,8 +463,8 @@
             <div class="cute-emoji">💝</div>
             <h1 class="title">特别邀请</h1>
             <p class="subtitle">嘿，要不要和我约个会呀？</p>
-            <input type="text" class="name-input" id="girlName" placeholder="你的名字" value="亲爱的">
-            <div class="btn-container" style="position: relative; height: 150px; width: 280px;">
+            <div class="fixed-name">甜甜 ❤️</div>
+            <div class="btn-container" style="position: relative; height: 150px; width: 320px;">
                 <button class="btn btn-yes" onclick="chooseYes()">要！💕</button>
                 <button class="btn btn-no" id="btnNo" onclick="tryClickNo()">不要 😢</button>
             </div>
@@ -443,6 +473,7 @@
 
         <!-- Page 2: Date -->
         <div class="page" id="page2">
+            <button class="back-btn" onclick="goBack(1)">← 上一步</button>
             <div class="cute-emoji">📅</div>
             <h2 class="question">选个约会日期吧~</h2>
             <div class="calendar-grid" id="calendarGrid">
@@ -463,6 +494,7 @@
 
         <!-- Page 3: Time -->
         <div class="page" id="page3">
+            <button class="back-btn" onclick="goBack(2)">← 上一步</button>
             <div class="cute-emoji">⏰</div>
             <h2 class="question">选择具体时间</h2>
             <div class="options-grid">
@@ -495,6 +527,7 @@
 
         <!-- Page 4: Location -->
         <div class="page" id="page4">
+            <button class="back-btn" onclick="goBack(3)">← 上一步</button>
             <div class="cute-emoji">🌸</div>
             <h2 class="question">想去哪里约会呢？</h2>
             <div class="options-grid">
@@ -519,6 +552,7 @@
 
         <!-- Page 5: Food -->
         <div class="page" id="page5">
+            <button class="back-btn" onclick="goBack(4)">← 上一步</button>
             <div class="cute-emoji">🍰</div>
             <h2 class="question">想吃什么呢？</h2>
             <div class="options-grid">
@@ -543,6 +577,7 @@
 
         <!-- Page 6: Flavor -->
         <div class="page" id="page6">
+            <button class="back-btn" onclick="goBack(5)">← 上一步</button>
             <div class="cute-emoji">👅</div>
             <h2 class="question">选择口味偏好~</h2>
             <div class="options-grid" id="flavorOptions">
@@ -645,6 +680,23 @@
         createHearts();
         renderCalendar();
 
+        // Load saved data
+        const saved = localStorage.getItem('datingInvite');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                if (data.date && data.time && data.location && data.food && data.flavor) {
+                    selections = data;
+                    selectedDate = data.date;
+                    // Show result directly
+                    setTimeout(() => showResult(), 500);
+                }
+            } catch (e) {}
+        }
+
+        // Initialize no button position randomly
+        setTimeout(() => teleportButton(), 100);
+
         // Calendar functions
         function renderCalendar() {
             const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
@@ -734,60 +786,14 @@
             btn.style.top = newY + 'px';
         }
 
-        // Move button on mouse move - aggressive escape!
-        let lastMoveTime = 0;
-        let hoverCount = 0;
-        document.addEventListener('mousemove', function(e) {
+        // No button constantly jumps around randomly
+        setInterval(() => {
             const btn = document.getElementById('btnNo');
-            if (!btn) return;
+            if (!btn || !document.getElementById('page1').classList.contains('active')) return;
+            teleportButton();
+        }, 200);
 
-            const now = Date.now();
-            if (now - lastMoveTime < 50) return; // Faster throttle
-            lastMoveTime = now;
-
-            const rect = btn.getBoundingClientRect();
-            const btnCenterX = rect.left + rect.width / 2;
-            const btnCenterY = rect.top + rect.height / 2;
-
-            const distance = Math.sqrt(
-                Math.pow(e.clientX - btnCenterX, 2) +
-                Math.pow(e.clientY - btnCenterY, 2)
-            );
-
-            // Run away when mouse gets close - get more aggressive as hoverCount increases
-            const triggerDistance = Math.max(80, 150 - hoverCount * 10);
-            if (distance < triggerDistance) {
-                hoverCount++;
-                const container = document.querySelector('.btn-container');
-                const containerRect = container.getBoundingClientRect();
-
-                const maxX = containerRect.width - btn.offsetWidth;
-                const maxY = containerRect.height - btn.offsetHeight;
-
-                // Calculate direction away from mouse
-                const dx = btnCenterX - e.clientX;
-                const dy = btnCenterY - e.clientY;
-                const angle = Math.atan2(dy, dx);
-
-                // Jump in direction away from mouse with randomness
-                const jumpDistance = 30 + Math.random() * 50;
-                let newX = parseFloat(btn.style.left || '0') + Math.cos(angle) * jumpDistance;
-                let newY = parseFloat(btn.style.top || '0') + Math.sin(angle) * jumpDistance;
-
-                // Add some randomness to position
-                newX = Math.max(0, Math.min(maxX, newX + (Math.random() - 0.5) * 40));
-                newY = Math.max(0, Math.min(maxY, newY + (Math.random() - 0.5) * 40));
-
-                btn.style.left = newX + 'px';
-                btn.style.top = newY + 'px';
-
-                // Add wiggle animation
-                btn.classList.add('escaping');
-                setTimeout(() => btn.classList.remove('escaping'), 100);
-            }
-        });
-
-        // Touch support for mobile - more aggressive
+        // Touch support for mobile
         document.addEventListener('touchstart', function(e) {
             const btn = document.getElementById('btnNo');
             if (!btn) return;
@@ -806,7 +812,7 @@
         }, { passive: true });
 
         function chooseYes() {
-            selections.name = document.getElementById('girlName').value || '亲爱的';
+            selections.name = '甜甜';
             document.getElementById('page1').classList.remove('active');
             document.getElementById('page2').classList.add('active');
             createSparkles();
@@ -849,6 +855,11 @@
             showResult();
         }
 
+        function goBack(pageNum) {
+            document.getElementById(`page${pageNum + 1}`).classList.remove('active');
+            document.getElementById(`page${pageNum}`).classList.add('active');
+        }
+
         function showResult() {
             document.getElementById('resultDate').textContent = selections.date;
             document.getElementById('resultTime').textContent = selections.time;
@@ -863,11 +874,13 @@
             document.getElementById('page6').classList.remove('active');
             document.getElementById('page7').classList.add('active');
             createSparkles();
+
+            // Auto save to localStorage
+            localStorage.setItem('datingInvite', JSON.stringify(selections));
         }
 
         function restart() {
             selections = { name: '', date: '', time: '', location: '', food: '', flavor: '' };
-            document.getElementById('girlName').value = '亲爱的';
             selectedDate = '';
             currentMonth = new Date().getMonth();
             currentYear = new Date().getFullYear();
