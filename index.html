@@ -121,12 +121,9 @@
 
         .btn-container {
             display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
             justify-content: center;
             position: relative;
-            height: 150px;
-            width: 320px;
+            width: 100%;
         }
 
         .btn {
@@ -143,8 +140,6 @@
             background: linear-gradient(45deg, #ff6b9d, #ff4081);
             color: white;
             box-shadow: 0 8px 25px rgba(255,64,129,0.4);
-            position: relative;
-            z-index: 50;
         }
 
         .btn-yes:hover {
@@ -464,10 +459,10 @@
             <h1 class="title">特别邀请</h1>
             <p class="subtitle">嘿，要不要和我约个会呀？</p>
             <div class="fixed-name">甜甜 ❤️</div>
-            <div class="btn-container" style="position: relative; height: 150px; width: 320px;">
+            <div class="btn-container">
                 <button class="btn btn-yes" onclick="chooseYes()">要！💕</button>
-                <button class="btn btn-no" id="btnNo" onclick="tryClickNo()">不要 😢</button>
             </div>
+            <button class="btn btn-no" id="btnNo" onclick="tryClickNo()">不要 😢</button>
             <p class="hint" id="hint">你是不是想点"不要"？试试看啊~ 😏</p>
         </div>
 
@@ -773,17 +768,34 @@
             teleportButton();
         }
 
-        // Teleport button to random position
+        // Teleport button to random position (full screen, avoiding yes button)
         function teleportButton() {
             const btn = document.getElementById('btnNo');
-            const container = document.querySelector('.btn-container');
-            const containerRect = container.getBoundingClientRect();
-            const maxX = containerRect.width - btn.offsetWidth;
-            const maxY = containerRect.height - btn.offsetHeight;
-            const newX = Math.random() * maxX;
-            const newY = Math.random() * maxY;
+            if (!btn) return;
+
+            const yesBtn = document.querySelector('.btn-yes');
+            const padding = 20;
+            const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+            const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+            let newX, newY, attempts = 0;
+            const btnW = btn.offsetWidth;
+            const btnH = btn.offsetHeight;
+
+            do {
+                newX = Math.random() * (vw - btnW - padding * 2) + padding;
+                newY = Math.random() * (vh - btnH - padding * 2) + padding;
+                attempts++;
+            } while (attempts < 10 && yesBtn && isOverlapping(newX, newY, btnW, btnH, yesBtn));
+
             btn.style.left = newX + 'px';
             btn.style.top = newY + 'px';
+            btn.style.position = 'fixed';
+        }
+
+        function isOverlapping(x1, y1, w1, h1, elem2) {
+            const r2 = elem2.getBoundingClientRect();
+            return !(x1 + w1 < r2.left || x1 > r2.right || y1 + h1 < r2.top || y1 > r2.bottom);
         }
 
         // No button constantly jumps around randomly
@@ -793,10 +805,10 @@
             teleportButton();
         }, 200);
 
-        // Touch support for mobile
+        // Touch support for mobile - teleport when touched
         document.addEventListener('touchstart', function(e) {
             const btn = document.getElementById('btnNo');
-            if (!btn) return;
+            if (!btn || !document.getElementById('page1').classList.contains('active')) return;
 
             const rect = btn.getBoundingClientRect();
             const touch = e.touches[0];
@@ -806,7 +818,7 @@
                 Math.pow(touch.clientY - (rect.top + rect.height/2), 2)
             );
 
-            if (distance < 200) {
+            if (distance < 150) {
                 teleportButton();
             }
         }, { passive: true });
@@ -891,8 +903,8 @@
             const btn = document.getElementById('btnNo');
             btn.style.left = '';
             btn.style.top = '';
+            btn.style.position = '';
             hintCount = 0;
-            hoverCount = 0;
             document.getElementById('hint').textContent = hints[0];
 
             // Reset calendar
