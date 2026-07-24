@@ -774,6 +774,8 @@
             if (!btn) return;
 
             const yesBtn = document.querySelector('.btn-yes');
+            if (!yesBtn) return;
+
             const padding = 20;
             const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
             const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
@@ -782,20 +784,22 @@
             const btnW = btn.offsetWidth;
             const btnH = btn.offsetHeight;
 
+            // Get yes button position
+            const yesRect = yesBtn.getBoundingClientRect();
+
             do {
                 newX = Math.random() * (vw - btnW - padding * 2) + padding;
                 newY = Math.random() * (vh - btnH - padding * 2) + padding;
                 attempts++;
-            } while (attempts < 10 && yesBtn && isOverlapping(newX, newY, btnW, btnH, yesBtn));
+            } while (attempts < 20 && isOverlapping(newX, newY, btnW, btnH, yesRect));
 
             btn.style.left = newX + 'px';
             btn.style.top = newY + 'px';
             btn.style.position = 'fixed';
         }
 
-        function isOverlapping(x1, y1, w1, h1, elem2) {
-            const r2 = elem2.getBoundingClientRect();
-            return !(x1 + w1 < r2.left || x1 > r2.right || y1 + h1 < r2.top || y1 > r2.bottom);
+        function isOverlapping(x1, y1, w1, h1, rect2) {
+            return !(x1 + w1 < rect2.left || x1 > rect2.right || y1 + h1 < rect2.top || y1 > rect2.bottom);
         }
 
         // No button constantly jumps around randomly
